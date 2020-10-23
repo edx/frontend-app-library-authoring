@@ -8,9 +8,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faSearch } from '@fortawesome/free-solid-svg-icons';
 
 import { LoadingPage } from '../../generic';
-import {
-  LOADING_STATUS, LibraryIndexTabs, libraryShape, LIBRARY_TYPES,
-} from '../common';
+import { LOADING_STATUS, LIBRARY_TYPES, libraryShape } from '../common';
 import { LibraryCreateForm } from '../create-library';
 import {
   fetchLibraryList,
@@ -140,7 +138,7 @@ class LibraryListPage extends React.Component {
                     variant="success"
                     onClick={this.showForm}
                   >
-                    <FontAwesomeIcon icon={faPlus} className="pr-3" />
+                    <FontAwesomeIcon icon={faPlus} className="pr-2" />
                     {intl.formatMessage(messages['library.list.new.library'])}
                   </Button>
                 </li>
@@ -151,7 +149,6 @@ class LibraryListPage extends React.Component {
         <div className="wrapper-content wrapper">
           <section className="content">
             <article className="content-primary" role="main">
-              <LibraryIndexTabs />
               {showForm
               && <LibraryCreateForm hideForm={this.hideForm} />}
               <ul className="library-list">

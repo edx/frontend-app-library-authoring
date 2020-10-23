@@ -7,24 +7,26 @@ import {
 } from '@edx/frontend-platform';
 import { AppProvider, ErrorPage } from '@edx/frontend-platform/react';
 import Footer, { messages as footerMessages } from '@edx/frontend-component-footer';
-
-import appMessages from './i18n';
-import store from './store';
-import { NotFoundPage } from './generic';
 import {
+  Header,
   ROUTES,
   LibraryBlockPage,
   LibraryEditPage,
   LibraryPage,
   LibraryListPage,
-  StudioHeader,
   LibraryAccessPage,
   LibraryAuthoringPage,
 } from './library-authoring';
+
+import appMessages from './i18n';
+import store from './store';
+import { NotFoundPage } from './generic';
+
 import './index.scss';
 import './assets/favicon.ico';
 
 mergeConfig({
+  LIB_AUTHORING_BASE_URL: process.env.BASE_URL,
   STUDIO_BASE_URL: process.env.STUDIO_BASE_URL,
   BLOCKSTORE_COLLECTION_UUID: process.env.BLOCKSTORE_COLLECTION_UUID,
   SECURE_ORIGIN_XBLOCK_BOOTSTRAP_HTML_URL: process.env.SECURE_ORIGIN_XBLOCK_BOOTSTRAP_HTML_URL,
@@ -33,8 +35,8 @@ mergeConfig({
 subscribe(APP_READY, () => {
   ReactDOM.render(
     <AppProvider store={store}>
+      <Header />
       <div className="wrapper">
-        <StudioHeader />
         <main>
           <Switch>
             <Route exact path={ROUTES.List.HOME} component={LibraryListPage} />
