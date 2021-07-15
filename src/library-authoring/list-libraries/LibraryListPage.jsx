@@ -1,7 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Button, Form, Input } from '@edx/paragon';
+import {
+  Button, Form, Input, Pagination,
+} from '@edx/paragon';
 import { injectIntl, intlShape } from '@edx/frontend-platform/i18n';
 import { AppContext } from '@edx/frontend-platform/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -9,7 +11,7 @@ import { faPlus, faSearch } from '@fortawesome/free-solid-svg-icons';
 
 import { LoadingPage } from '../../generic';
 import {
-  LOADING_STATUS, LibraryIndexTabs, libraryShape, LIBRARY_TYPES,
+  LOADING_STATUS, LibraryIndexTabs, libraryShape, LIBRARY_TYPES, paginated,
 } from '../common';
 import { LibraryCreateForm } from '../create-library';
 import {
@@ -19,14 +21,20 @@ import {
 } from './data';
 import LibraryListItem from './LibraryListItem';
 import messages from './messages';
+import commonMessages from '../common/messages';
 
-class LibraryListPage extends React.Component {
+export class LibraryListPage extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
       showForm: false,
+      paginationParams: {
+        page: 1,
+        page_size: 20,
+      },
       filterParams: {
+        type: 'complex',
         text_search: '',
         org: '',
       },
@@ -34,7 +42,12 @@ class LibraryListPage extends React.Component {
   }
 
   componentDidMount() {
-    this.props.fetchLibraryList({ params: this.state.filterParams });
+    this.props.fetchLibraryList({
+      params: {
+        ...this.state.filterParams,
+        ...this.state.paginationParams,
+      },
+    });
   }
 
   showForm = () => {
@@ -49,9 +62,30 @@ class LibraryListPage extends React.Component {
     });
   }
 
+  handlePageChange = (selectedPage) => {
+    this.setState(state => ({
+      paginationParams: {
+        ...state.paginationParams,
+        page: selectedPage,
+      },
+    }));
+
+    this.props.fetchLibraryList({
+      params: {
+        ...this.state.filterParams,
+        ...this.state.paginationParams,
+        page: selectedPage,
+      },
+    });
+  }
+
   handleFilterChange = (event) => {
     const { name, value } = event.target;
     this.setState(state => ({
+      paginationParams: {
+        ...state.paginationParams,
+        page: 1,
+      },
       filterParams: {
         ...state.filterParams,
         [name]: value,
@@ -65,6 +99,7 @@ class LibraryListPage extends React.Component {
       params: {
         ...this.state.filterParams,
         org: event.target.value,
+        page_size: this.state.paginationParams.page_size,
       },
     });
   }
@@ -75,6 +110,7 @@ class LibraryListPage extends React.Component {
       params: {
         ...this.state.filterParams,
         type: event.target.value,
+        page_size: this.state.paginationParams.page_size,
       },
     });
   }
@@ -106,6 +142,18 @@ class LibraryListPage extends React.Component {
     const { intl, libraries, orgs } = this.props;
     const { showForm, filterParams } = this.state;
 
+    const paginationOptions = {
+      currentPage: this.state.paginationParams.page,
+      pageCount: Math.ceil(libraries.count / this.state.paginationParams.page_size),
+      buttonLabels: {
+        previous: intl.formatMessage(commonMessages['library.common.pagination.labels.previous']),
+        next: intl.formatMessage(commonMessages['library.common.pagination.labels.next']),
+        page: intl.formatMessage(commonMessages['library.common.pagination.labels.page']),
+        currentPage: intl.formatMessage(commonMessages['library.common.pagination.labels.currentPage']),
+        pageOfCount: intl.formatMessage(commonMessages['library.common.pagination.labels.pageOfCount']),
+      },
+    };
+
     const orgOptions = [
       {
         value: '',
@@ -126,7 +174,6 @@ class LibraryListPage extends React.Component {
         { value, label: intl.formatMessage(messages[`library.list.filter.options.type.${value}`]) }
       )),
     }];
-    typeOptions.unshift({ value: '', label: intl.formatMessage(messages['library.list.filter.options.type.all']) });
 
     return (
       <div className="library-list-wrapper">
@@ -155,12 +202,24 @@ class LibraryListPage extends React.Component {
               {showForm
               && <LibraryCreateForm hideForm={this.hideForm} />}
               <ul className="library-list">
-                {libraries.map((library) => (
+                {libraries.data.map((library) => (
                   <li key={library.id} className="library-item">
                     <LibraryListItem library={library} />
                   </li>
                 ))}
               </ul>
+              {libraries.count > 0
+                ? (
+                  <Pagination
+                    className="library-list-pagination"
+                    paginationLabel="pagination navigation"
+                    currentPage={paginationOptions.currentPage}
+                    pageCount={paginationOptions.pageCount}
+                    buttonLabels={paginationOptions.buttonLabels}
+                    onPageSelect={this.handlePageChange}
+                  />
+                )
+                : null}
             </article>
             <aside className="content-supplementary">
               <div className="bit">
@@ -265,7 +324,7 @@ LibraryListPage.propTypes = {
   errorMessage: PropTypes.string,
   fetchLibraryList: PropTypes.func.isRequired,
   intl: intlShape.isRequired,
-  libraries: PropTypes.arrayOf(libraryShape),
+  libraries: paginated(libraryShape).isRequired,
   orgs: PropTypes.arrayOf(PropTypes.string),
   status: PropTypes.oneOf(Object.values(LOADING_STATUS)).isRequired,
 };

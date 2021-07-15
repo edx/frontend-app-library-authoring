@@ -87,11 +87,6 @@ const messages = defineMessages({
     defaultMessage: 'Type',
     description: 'Label for the type form group.',
   },
-  'library.list.filter.options.type.all': {
-    id: 'library.list.filter.options.type.all',
-    defaultMessage: 'All',
-    description: 'Label for the empty type option.',
-  },
   'library.list.filter.options.type.types': {
     id: 'library.list.filter.options.type.types',
     defaultMessage: 'Types',
